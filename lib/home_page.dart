@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:socialapp_studio/add_post_page.dart';
+import 'package:socialapp_studio/post_details.dart';
 import 'package:socialapp_studio/post_model.dart';
 import 'package:socialapp_studio/splash_screen.dart';
 import 'package:timeago/timeago.dart' as timeago;
@@ -85,6 +86,13 @@ class _HomePageState extends State<HomePage> {
                 onDelete: () {
                   document.reference.delete();
                 },
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (context) => PostDetailsPage(
+                      docId: document.id,
+                    ))
+                  );
+                },
               );
             },
             separatorBuilder: (context, index) {
@@ -118,59 +126,66 @@ class FeedItemWidget extends StatelessWidget {
     this.content = "",
     this.time = "",
     this.onDelete,
+    this.onTap,
   }) : super(key: key);
 
   final String username;
   final String content;
   final String time;
   final Function? onDelete;
+  final Function? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      color: Color(0xFF312F39),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                username,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
-                ),
-              ),
-              Row(
-                children: [
-                  Text(
-                    time,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.white.withOpacity(.4),
-                    ),
+    return GestureDetector(
+      onTap: () {
+        onTap?.call();
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        color: Color(0xFF312F39),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  username,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
                   ),
-                  SizedBox(width: 8,),
-                  InkWell(
-                    onTap: () {
-                      onDelete?.call();
-                    },
-                    child: Icon(Icons.delete, size: 14,),
-                  )
-                ],
-              )
-            ],
-          ),
-          SizedBox(
-            height: 12,
-          ),
-          Text(content,
-              style: TextStyle(
-                color: Colors.white.withOpacity(.6),
-              )),
-        ],
+                ),
+                Row(
+                  children: [
+                    Text(
+                      time,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.white.withOpacity(.4),
+                      ),
+                    ),
+                    SizedBox(width: 8,),
+                    InkWell(
+                      onTap: () {
+                        onDelete?.call();
+                      },
+                      child: Icon(Icons.delete, size: 14,),
+                    )
+                  ],
+                )
+              ],
+            ),
+            SizedBox(
+              height: 12,
+            ),
+            Text(content,
+                style: TextStyle(
+                  color: Colors.white.withOpacity(.6),
+                )),
+          ],
+        ),
       ),
     );
   }
