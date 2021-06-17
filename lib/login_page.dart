@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:socialapp_studio/home_page.dart';
@@ -18,28 +19,37 @@ class _LoginPageState extends State<LoginPage> {
 
   bool smsSent = false;
   String verificationId = "";
+  late ConfirmationResult confirmationResult;
 
   Future<void> _signIn() async {
     String phone = _phoneEditController.text;
     print("+91$phone");
 
-    await auth.verifyPhoneNumber(
-      phoneNumber: "+91$phone",
-      verificationCompleted: (PhoneAuthCredential credential) {
-        print("Verification Completed");
-      },
-      verificationFailed: (FirebaseAuthException e) {
-        print(e);
-      },
-      codeSent: (String verificationId, int? resendToken) {
-        print("Sent OTP");
-        this.verificationId = verificationId;
-        setState(() {
-          smsSent = true;
-        });
-      },
-      codeAutoRetrievalTimeout: (String verificationId) {},
-    );
+    if(kIsWeb) {
+      confirmationResult = await auth.signInWithPhoneNumber(
+          "+91$phone");
+      setState(() {
+        smsSent = true;
+      });
+    } else {
+      await auth.verifyPhoneNumber(
+        phoneNumber: "+91$phone",
+        verificationCompleted: (PhoneAuthCredential credential) {
+          print("Verification Completed");
+        },
+        verificationFailed: (FirebaseAuthException e) {
+          print(e);
+        },
+        codeSent: (String verificationId, int? resendToken) {
+          print("Sent OTP");
+          this.verificationId = verificationId;
+          setState(() {
+            smsSent = true;
+          });
+        },
+        codeAutoRetrievalTimeout: (String verificationId) {},
+      );
+    }
   }
 
   Future<void> _verifyOTP() async {
@@ -51,7 +61,13 @@ class _LoginPageState extends State<LoginPage> {
         verificationId: verificationId, smsCode: smsCode);
 
     // Sign the user in (or link) with the credential
-    UserCredential userCredential = await auth.signInWithCredential(credential);
+    late  UserCredential userCredential;
+    if(kIsWeb) {
+      userCredential = await confirmationResult.confirm('123456');
+    } else {
+      userCredential =
+          await auth.signInWithCredential(credential);
+    }
 
     if (userCredential.user == null) {
       print("User not logged in");
